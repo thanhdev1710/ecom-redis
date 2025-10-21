@@ -1,0 +1,24 @@
+# dependencies
+node_modules
+npm-debug.log
+yarn-debug.log*
+yarn-error.log*
+
+# environment files
+.env
+.env.local
+.env.*.local
+
+# build outputs
+dist
+.next
+out
+build
+
+# system
+.DS_Store
+.git
+.gitignore
+docker-compose.yml
+Dockerfile
+README.md

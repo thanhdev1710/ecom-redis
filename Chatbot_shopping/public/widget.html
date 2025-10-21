@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Chatbot Widget</title>
+    <link rel="stylesheet" href="/widget.css" />
+  </head>
+  <body>
+    <!-- Only the widget UI below -->
+    <div id="chatbot-widget-button">
+      <img src="/images/chatbot_1.png" alt="Chat" />
+    </div>
+
+    <div id="chatbot-container" style="display:none;">
+      <div class="vh-chatbot-header">
+        <div class="vh-chatbot-header-info">
+          <div class="vh-chatbot-avatar"><img src="/images/chatbot_1.png" style="width: 35px; height: 60px;" alt="Chat" /></div>
+          <div class="vh-chatbot-header-text">
+            <h3>Trợ lý tư vấn</h3>
+            <p>Sẵn sàng hỗ trợ bạn</p>
+          </div>
+        </div>
+        <div class="vh-chatbot-close">✕</div>
+      </div>
+
+      <div class="vh-chatbot-messages" id="chatbot-messages"></div>
+
+      <div class="vh-chatbot-input">
+        <button id="chatbot-actions" title="Mở menu hành động">⋯</button>
+        <input type="text" id="chatbot-input" placeholder="Nhập tin nhắn của bạn...">
+        <button id="chatbot-send">Gửi</button>
+      </div>
+    
+    <!-- Action menu anchored inside container -->
+    <div id="chatbot-action-menu" style="display:none; position: absolute; left: 12px; bottom: 70px; background: #fff; border: 1px solid #e5e7eb; box-shadow: 0 10px 24px rgba(0,0,0,0.12); border-radius: 10px; padding: 8px; z-index: 1001; min-width: 220px;">
+      <a href="/quote.html" target="_blank" class="vh-product-link" style="display:block; text-align:center;">Báo giá bộ sản phẩm</a>
+    </div>
+    </div>
+
+    <script src="/widget.js"></script>
+  </body>
+  </html>
+
+

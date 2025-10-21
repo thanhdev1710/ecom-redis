@@ -1,0 +1,103 @@
+# ==========================
+# ⚙️ Node & Build Files
+# ==========================
+node_modules/
+**/node_modules/
+dist/
+build/
+.next/
+out/
+coverage/
+.nyc_output/
+.cache/
+tmp/
+temp/
+*.tsbuildinfo
+
+# ==========================
+# 🧱 Environment & Config
+# ==========================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.test
+.env.example
+
+# ==========================
+# 🪣 Redis & Database Data
+# ==========================
+data/
+dump.rdb
+appendonly.aof
+*.rdb
+*.aof
+
+# ==========================
+# 🐋 Docker & Containers
+# ==========================
+*.pid
+*.pid.lock
+*.sock
+*.log
+docker-compose.override.yml
+
+# ==========================
+# 🧪 Logs
+# ==========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ==========================
+# 🧩 OS Generated Files
+# ==========================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+Icon?
+$RECYCLE.BIN/
+
+# ==========================
+# 💻 IDE & Editor Configs
+# ==========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+
+# ==========================
+# 🚀 Next.js / Frontend Cache
+# ==========================
+.next/
+out/
+.vercel/
+*.local
+*.lock
+*.log
+
+# ==========================
+# 🧰 Miscellaneous
+# ==========================
+coverage/
+yarn.lock
+package-lock.json
+npm-debug.log*
+*.tgz
+*.zip
+*.tar
+*.gz
+
+# ==========================
+# 📁 Generated files
+# ==========================
+build/
+public/build/
+storybook-static/
