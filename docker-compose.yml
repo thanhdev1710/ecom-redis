@@ -1,36 +1,35 @@
-version: "3.9"
+version: "3.9.1"
 
 services:
   redis:
-    image: redis/redis-stack:latest
+    image: redis/redis-stack-server:latest
     container_name: redis-stack
+    restart: unless-stopped
     ports:
       - "6379:6379"
-      - "8001:8001"
     volumes:
-      - ./data:/data
+      - ./data:/var/lib/redis-stack
       - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
     command: ["redis-stack-server", "/usr/local/etc/redis/redis.conf"]
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-SuperStrongPassw0rd!}
     healthcheck:
       test: ["CMD-SHELL", 'redis-cli -a "$REDIS_PASSWORD" PING || exit 1']
       interval: 5s
       timeout: 3s
       retries: 20
-    restart: unless-stopped
 
-  seed:
-    build: ./seed
-    image: chithanh171004/redis-seed:latest
-    container_name: redis-seed
-    env_file: [.env]
-    environment:
-      - REDIS_URL=${REDIS_URL}
-    depends_on:
-      redis:
-        condition: service_healthy
-    restart: "no"
+  # seed:
+  #   build: ./seed
+  #   image: chithanh171004/redis-seed:latest
+  #   container_name: redis-seed
+  #   env_file: [.env]
+  #   environment:
+  #     - REDIS_URL=${REDIS_URL}
+  #   depends_on:
+  #     redis:
+  #       condition: service_healthy
+  #   restart: "no"
 
   api:
     build: ./api
@@ -41,9 +40,9 @@ services:
       - REDIS_URL=${REDIS_URL}
       - PORT=${PORT_API}
       - JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      seed:
-        condition: service_completed_successfully
+    # depends_on:
+    #   seed:
+    #     condition: service_completed_successfully
     ports:
       - "4000:4000"
     restart: unless-stopped
@@ -57,9 +56,9 @@ services:
       - REDIS_URL=${REDIS_URL}
       - PORT=${CHATBOT_API}
       - JWT_SECRET=${JWT_SECRET}
-    depends_on:
-      seed:
-        condition: service_completed_successfully
+    # depends_on:
+    #   seed:
+    #     condition: service_completed_successfully
     ports:
       - "4001:4001"
     restart: unless-stopped
