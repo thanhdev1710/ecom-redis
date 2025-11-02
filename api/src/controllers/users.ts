@@ -23,7 +23,7 @@ export const registerUser = CatchAsync(async (req, res) => {
     return res.status(400).json({ ok: false, message: "Email không hợp lệ" });
 
   // set chứa toàn bộ email để chống trùng
-  const EMAIL_SET = "ecom:emails";
+  const EMAIL_SET = "ecom:listemail";
 
   const exists = await redis.sismember(EMAIL_SET, emailNorm);
   if (exists)
