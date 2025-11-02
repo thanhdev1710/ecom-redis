@@ -146,7 +146,6 @@ export default function UserPage() {
           fullName: payload.fullName ?? profile.fullName,
           phone: payload.phone ?? profile.phone,
           location: payload.location ?? profile.location,
-          // KHÔNG gửi email vì BE cấm đổi email (uid)
         }),
       });
       const data = await res.json();

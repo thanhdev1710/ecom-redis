@@ -1,6 +1,15 @@
 import { redis } from "../redis";
 import CatchAsync from "../utils/CatchAsync";
 
+type OrderDoc = {
+  id: string;
+  uid: string; // email (lowercase)
+  items: { pid: string; qty: number }[];
+  total: number;
+  status: string;
+  createdAt: number; // ms epoch
+};
+
 const normalizeEmail = (email: string) =>
   String(email || "")
     .trim()
@@ -52,7 +61,7 @@ export const submitOrderByUserId = CatchAsync(async (req, res) => {
   const oid = String(nextSeq);
   const orderKey = `ecom:order:${oid}`;
 
-  const orderDoc = {
+  const orderDoc: OrderDoc = {
     id: oid,
     uid, // email (lowercase)
     items,
@@ -97,4 +106,135 @@ export const submitOrderByUserId = CatchAsync(async (req, res) => {
   await pipe.exec();
 
   return res.json({ ok: true, order: orderDoc });
+});
+
+// GET /orders/:uid?offset=0&limit=50
+export const getOrdersByUserId = CatchAsync(async (req, res) => {
+  const uid = normalizeEmail(req.params.uid);
+
+  // 1) Lấy toàn bộ OID của user (mới nhất ở index 0 do dùng LPUSH)
+  const keyList = `ecom:user:${uid}:orders`;
+  const totalOrders = (await redis.llen(keyList)) as number;
+
+  if (!totalOrders || totalOrders <= 0) {
+    return res
+      .status(404)
+      .json({ ok: false, message: "Người dùng chưa có đơn hàng" });
+  }
+
+  // Pagination nhẹ (tùy chọn)
+  const offset = Math.max(
+    0,
+    parseInt(String(req.query.offset ?? "0"), 10) || 0
+  );
+  const limit = Math.max(
+    1,
+    parseInt(String(req.query.limit ?? "100"), 10) || 100
+  );
+  const start = offset;
+  const end = Math.min(offset + limit - 1, totalOrders - 1);
+
+  const oids = (await redis.lrange(keyList, start, end)) as string[]; // newest → older
+  if (!oids || oids.length === 0) {
+    return res
+      .status(404)
+      .json({
+        ok: false,
+        message: "Không tìm thấy đơn hàng trong khoảng đã chọn",
+      });
+  }
+
+  // 2) Đọc orders theo OIDs (batch)
+  const orderKeys = oids.map((oid) => `ecom:order:${oid}`);
+  const ordersRaw = (await redis.call("JSON.MGET", ...orderKeys, "$")) as (
+    | string
+    | null
+  )[];
+
+  // Parse + lọc null/hỏng
+  const orders: OrderDoc[] = [];
+  for (const r of ordersRaw) {
+    if (!r) continue;
+    try {
+      const arr = JSON.parse(r);
+      const obj = Array.isArray(arr) ? arr[0] : arr;
+      if (obj && obj.id && obj.uid) orders.push(obj as OrderDoc);
+    } catch {
+      // bỏ qua order hỏng dữ liệu
+    }
+  }
+  if (orders.length === 0) {
+    return res
+      .status(404)
+      .json({ ok: false, message: "Không đọc được dữ liệu đơn hàng" });
+  }
+
+  // 3) Đọc user HASH để lấy fullName/phone
+  const userHash = (await redis.hgetall(`ecom:user:${uid}`)) as Record<
+    string,
+    string
+  >;
+  const customerBase = {
+    name: (userHash?.fullName || userHash?.email || uid) as string,
+    phone: (userHash?.phone ?? null) as string | null,
+  };
+
+  // 4) Gom tất cả pid duy nhất trong mọi order → đọc sản phẩm 1 lần
+  const pidSet = new Set<string>();
+  for (const od of orders) for (const it of od.items || []) pidSet.add(it.pid);
+  const pids = Array.from(pidSet);
+  let pidMap = new Map<string, { name?: string; price?: number }>();
+
+  if (pids.length > 0) {
+    const prodKeys = pids.map((pid) => `ecom:prod:${pid}`);
+    const prodsRaw = (await redis.call("JSON.MGET", ...prodKeys, "$")) as (
+      | string
+      | null
+    )[];
+    prodsRaw.forEach((r, i) => {
+      if (!r) return;
+      try {
+        const arr = JSON.parse(r);
+        const obj = Array.isArray(arr) ? arr[0] : arr;
+        pidMap.set(pids[i], {
+          name: obj?.name,
+          price: Number(obj?.price ?? 0),
+        });
+      } catch {
+        // ignore lỗi parse
+      }
+    });
+  }
+
+  // 5) Build mảng "pretty"
+  const data = orders.map((order) => {
+    const items = (order.items || []).map((it) => {
+      const info = pidMap.get(it.pid) || {};
+      const name = info.name ?? it.pid;
+      const unitPrice = Number.isFinite(info.price as number)
+        ? (info.price as number)
+        : 0;
+      return { name, qty: it.qty, unitPrice };
+    });
+
+    // Ưu tiên tổng tiền đã lưu trong order (đã “đóng băng” tại thời điểm đặt)
+    const total = Number.isFinite(order.total)
+      ? Number(order.total)
+      : items.reduce((s, it) => s + it.qty * it.unitPrice, 0);
+
+    return {
+      id: order.id,
+      status: String(order.status || "").toLowerCase(),
+      createdAt: new Date(order.createdAt || Date.now()).toISOString(),
+      customer: customerBase,
+      items,
+      total,
+    };
+  });
+
+  return res.json({
+    ok: true,
+    paging: { total: totalOrders, offset, limit, returned: data.length },
+    data, // newest → older
+  });
 });

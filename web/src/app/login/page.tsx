@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { API } from "@/lib/base";
+import { toast } from "react-hot-toast";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -62,10 +63,14 @@ export default function LoginPage() {
       }
 
       localStorage.setItem("email", data.user.email);
+      toast.success("Đăng nhập thành công");
       router.push("/user");
     } catch (err) {
-      // TODO: bạn có thể hiện toast ở đây
-      console.error(err);
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Lỗi hệ thống, vui lòng thử lại sau");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +81,7 @@ export default function LoginPage() {
     e.preventDefault();
 
     if (registerData.password !== registerData.confirmPassword) {
-      // TODO: toast lỗi "Mật khẩu xác nhận không khớp"
+      toast.error("Mật khẩu xác nhận không khớp");
       return;
     }
 
@@ -100,9 +105,14 @@ export default function LoginPage() {
       }
 
       localStorage.setItem("email", data.user.email);
+      toast.success("Đăng ký thành công");
       router.push("/user");
     } catch (err) {
-      console.error(err);
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("Lỗi hệ thống, vui lòng thử lại sau");
+      }
     } finally {
       setIsLoading(false);
     }

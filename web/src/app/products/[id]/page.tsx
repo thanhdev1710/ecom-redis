@@ -9,6 +9,7 @@ import { Star, ShoppingCart, ArrowLeft, Minus, Plus } from "lucide-react";
 import type { Product, CartItem } from "@/types";
 import { CartSheet } from "@/components/cart-sheet";
 import { API } from "@/lib/base";
+import toast from "react-hot-toast";
 
 const normalizeEmail = (s: string | null) =>
   (s || "").trim().toLowerCase() || "guest";
@@ -77,8 +78,10 @@ export default function ProductDetailPage() {
         body: JSON.stringify({ pid: productId, qty: quantity }),
       });
       await loadCart();
+      toast.success("Thêm giỏ hàng thành công");
       setIsCartOpen(true);
     } catch (error) {
+      toast.error("Đã xảy ra lỗi khi thêm giỏ hàng");
       console.error("Error adding to cart:", error);
     }
   }
@@ -105,7 +108,9 @@ export default function ProductDetailPage() {
         body: JSON.stringify({ pid }),
       });
       await loadCart();
+      toast.success("Xóa giỏ hàng thành công");
     } catch (error) {
+      toast.error("Đã xảy ra lỗi khi xóa giỏ hàng");
       console.error("Error removing from cart:", error);
     }
   }
@@ -123,8 +128,10 @@ export default function ProductDetailPage() {
         setCart([]);
         setIsCartOpen(false);
         await loadCart();
+        toast.success("Đặt hàng thành công");
       }
     } catch (error) {
+      toast.error("Đã xảy ra lỗi khi đặt hàng");
       console.error("Error during checkout:", error);
     }
   }

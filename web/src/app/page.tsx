@@ -16,6 +16,7 @@ import {
   PaginationLink,
   PaginationNext,
 } from "@/components/ui/pagination";
+import toast from "react-hot-toast";
 
 function getUID() {
   if (typeof window === "undefined") return "guest";
@@ -104,8 +105,10 @@ export default function Page() {
         body: JSON.stringify({ pid: productId, qty: 1 }), // increment +1
       });
       await loadCart();
+      toast.success("Thêm giỏ hàng thành công");
       setIsCartOpen(true);
     } catch (error) {
+      toast.error("Đã xảy ra lỗi khi thêm giỏ hàng");
       console.error("Error adding to cart:", error);
     }
   }
@@ -132,7 +135,9 @@ export default function Page() {
         body: JSON.stringify({ pid: productId }),
       });
       await loadCart();
+      toast.success("Xóa giỏ hàng thành công");
     } catch (error) {
+      toast.error("Đã xảy ra lỗi khi xóa giỏ hàng");
       console.error("Error removing from cart:", error);
     }
   }
@@ -149,8 +154,10 @@ export default function Page() {
         setCart([]);
         setIsCartOpen(false);
         await loadCart();
+        toast.success("Đặt hàng thành công");
       }
     } catch (error) {
+      toast.error("Đã xảy ra lỗi khi đặt hàng");
       console.error("Error during checkout:", error);
     }
   }
